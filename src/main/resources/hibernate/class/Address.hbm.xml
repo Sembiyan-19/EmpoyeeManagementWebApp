@@ -5,7 +5,7 @@
 
 <hibernate-mapping>
 
-   <class name = "com.ideas2it.EmployeeManagementProject.employeeManagement.model.Address" table = "address">
+   <class name = "com.ideas2it.employeeManagement.model.Address" table = "address">
       
       <meta attribute = "class-description">
          This class contains the employee detail. 
@@ -23,7 +23,7 @@
 	  <property name = "country" column = "country" type = "string"/>
 	  <property name = "type" column = "type" type = "string"/>
 	  <property name = "isDeleted" column = "is_deleted" type = "boolean"/>
-	  <many-to-one name = "employee" column = "employee_id" class = "com.ideas2it.EmployeeManagementProject.employeeManagement.model.Employee"/>
+	  <many-to-one name = "employee" column = "employee_id" class = "com.ideas2it.employeeManagement.model.Employee"/>
 	 
    </class>
 
