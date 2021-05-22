@@ -11,7 +11,7 @@
     <title>View Project</title>
   </head>
   <body>
-    <a href = "project?action=index"><button>Home</button></a>
+    <a href = "project?action=index"><button>Homeee</button></a>
     <br><br><br>
 	<% 
 	    Project project = (Project)request.getAttribute("project"); 
