@@ -7,12 +7,12 @@
   </head>
   <body>
     <br>
-    <a href="employee?action=showAllEmployees">
+    <a href="showAllEmployees">
       <button>1. Employee Management</button>
     </a>
     <br>
     <br>
-    <a href="project?action=showAllProjects">
+    <a href="showAllProjects">
       <button>2. Project Management</button>
     </a>
   </body>

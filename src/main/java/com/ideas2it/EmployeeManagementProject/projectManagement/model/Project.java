@@ -31,6 +31,15 @@ public class Project {
         this.isDeleted = isDeleted;
     }
 
+    public Project(int id, String name, String manager,
+            String department) {
+        this.id = id;
+        this.name = name;
+        this.manager = manager;
+        this.department = department;
+        this.isDeleted = isDeleted;
+    }
+    
     public String toString() {
         return ("\nProject Id: " + id + "\n\nProject name: " + name
                 + "\n\nProject manager: " + manager + "\n\nDepartment: "

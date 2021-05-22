@@ -23,6 +23,18 @@ public class Address {
     public Address() { }
 
     public Address(String doorNumber, String street, String city,
+            String pincode, String state, String country, String type) {
+        this.doorNumber = doorNumber;
+        this.street = street;
+        this.city = city;
+        this.pincode = pincode;
+        this.state = state;
+        this.country = country;
+        this.type = type;
+    }
+
+    
+    public Address(String doorNumber, String street, String city,
             String pincode, String state, String country, String type,
             boolean isDeleted) {
         this.doorNumber = doorNumber;

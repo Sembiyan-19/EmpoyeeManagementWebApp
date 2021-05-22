@@ -1,33 +1,67 @@
-<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
-    pageEncoding="ISO-8859-1"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
-<html>
-<head>
-  <title>Edit Employee</title>
-</head>
-<body>
-	<form action="employee?action=${operation}" method="post">
-	  Employee id: <input type = "number" name = "id" value = "${employee.id}" required <c:if test="${employee != null}"> <c:out value="${'readonly'}"/> </c:if>><br><br>
-	  Employee name: <input type = "text" name = "name" value = "${employee.name}" required><br><br>
-      Salary: <input type = "text" name = "salary" value = "${employee.salary}" required><br><br>
-      Mobile number: <input type = "text" name = "mobileNumber" value = "${employee.mobileNumber}" required pattern="[6789][0-9]{9}"><br><br>
-      Date of birth: <input type = "date" name = "dateOfBirth" value = "${employee.dateOfBirth}" required><br><br>
-     <c:if test="${employee == null}">
-      permanent address: <input type = "text" name = "doorNumber" placeholder = "door number" required>
-        <input type = "text" name = "street"  placeholder = "street" required>
-        <input type = "text" name = "city"  placeholder = "city" required>
-        <input type = "text" name = "pincode"  placeholder = "pincode" required>
-        <input type = "text" name = "state"  placeholder = "state" required>
-        <input type = "text" name = "country"  placeholder = "country"><br><br>
-      </c:if>
-      <input type = "submit"> 
-	</form>
-  <br><br><br>
-  <c:if test="${employee != null}">
-	<a href="employee?action=showEmployee&id=${employee.id}"><button>Back</button></a>
-  </c:if>
-  <c:if test="${employee == null}">
-    <a href="employee?action=showAllEmployees"><button>Back</button></a>
-  </c:if>
-</body>
-</html>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>    
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>    
+  
+        <h1>Enter the Employee Details</h1>  
+       <form:form method="post" action="${action}" modelAttribute="employee">    
+        <table > 
+        <tr>    
+          <td>Id : </td>   
+          <td><form:input path="id" required="required" /></td>  
+         </tr>   
+         <tr>    
+          <td>Name : </td>   
+          <td><form:input path="name" required="required" /></td>  
+         </tr>    
+         <tr>    
+          <td>Salary :</td>    
+          <td><form:input path="salary" required="required" /></td>  
+         </tr>
+         <tr>    
+          <td>Mobile Number :</td>    
+          <td><form:input path="mobileNumber" required="required" pattern="[6789][0-9]{9}"/></td>  
+         </tr>
+         <tr>    
+          <td>Date of birth :</td>    
+          <td><form:input path="dateOfBirth" type="date" required="required"/></td>  
+         </tr>
+         
+         <c:if test="${action == 'saveEmployee'}">
+         
+         <tr>    
+          <td>Permanent Address :</td>    
+          <td><form:input path="addresses[0].doorNumber" required="required" placeholder="Door Number"/></td>  
+         </tr>
+         <tr>    
+          <td></td>    
+          <td><form:input path="addresses[0].street" required="required" placeholder="Street"/></td>  
+         </tr>
+         <tr>    
+          <td></td>    
+          <td><form:input path="addresses[0].city" required="required" placeholder="City"/></td>  
+         </tr>
+         <tr>    
+          <td></td>    
+          <td><form:input path="addresses[0].pincode" required="required" placeholder="Pincode"/></td>  
+         </tr>
+         <tr>    
+          <td></td>    
+          <td><form:input path="addresses[0].state" required="required" placeholder="State"/></td>  
+         </tr>
+         <tr>    
+          <td></td>    
+          <td><form:input path="addresses[0].country" required="required" placeholder="Country"/></td>  
+         </tr>
+         </c:if>
+         <tr>
+          <td> </td>    
+          <td><input type="submit"/></td>    
+         </tr>    
+        </table>    
+       </form:form>    
+       <br><br><br>
+       <c:if test="${action == 'saveEmployee'}">
+       <a href="showAllEmployees"><button>Back</button></a>
+       </c:if>
+       <c:if test="${action == 'updateEmployee'}">
+       <a href="showEmployee?id=${id}"><button>Back</button></a>
+       </c:if>

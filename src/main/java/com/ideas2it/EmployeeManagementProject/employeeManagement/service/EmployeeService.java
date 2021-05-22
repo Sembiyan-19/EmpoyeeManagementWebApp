@@ -4,6 +4,7 @@ package com.ideas2it.EmployeeManagementProject.employeeManagement.service;
 import java.util.Date;
 import java.util.List;
 
+import com.ideas2it.EmployeeManagementProject.employeeManagement.model.Address;
 import com.ideas2it.EmployeeManagementProject.employeeManagement.model.Employee;
 import com.ideas2it.EmployeeManagementProject.employeeManagementException.EmployeeManagementException;
 import com.ideas2it.EmployeeManagementProject.projectManagement.model.Project;
@@ -28,8 +29,7 @@ public interface EmployeeService {
      * @return         true is details are successfully added else returns false
      * @throws EmployeeManagementException 
      */
-    public boolean addEmployee(int id, String name, float salary,
-            String mobileNumber, Date dateOfBirth, List<String> address) 
+    public boolean addEmployee(Employee employee) 
             throws EmployeeManagementException;
 
     /**
@@ -71,8 +71,7 @@ public interface EmployeeService {
      *     true if details are successfully updated else returns false
      * @throws EmployeeManagementException 
      */
-    public boolean updateEmployee(int id, String name, float salary,
-            String mobileNumber, Date dateOfBirth) 
+    public boolean updateEmployee(Employee employee) 
             throws EmployeeManagementException;
 
     /**
@@ -81,9 +80,9 @@ public interface EmployeeService {
      * @param addressDetails        list containg an address' details
      * @return
      *     true if a new address is successfully added else returns false
-     * @throws EmployeeManagementException 
+     * throws EmployeeManagementException 
      */
-    public boolean addNewAddress(int id, List<String> addressDetails) 
+    public boolean addNewAddress(int id, Address address) 
             throws EmployeeManagementException;
 
     /**
@@ -114,9 +113,7 @@ public interface EmployeeService {
      * @param addressType        type of address
      * @throws EmployeeManagementException 
      */
-    public boolean updateExistingAddress(int id, int selectedAddressOption, 
-            String doorNumber, String street, String city, String pincode,
-            String state, String country, String addressType) 
+    public boolean updateExistingAddress(int id, Address address) 
             throws EmployeeManagementException;
 
     /**

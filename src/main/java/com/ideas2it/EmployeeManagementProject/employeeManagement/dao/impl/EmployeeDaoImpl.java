@@ -91,7 +91,10 @@ public class EmployeeDaoImpl implements EmployeeDao {
             SessionFactory sessionFactory = singleton.getSessionFactory();
             session = sessionFactory.openSession();
             session.beginTransaction();
+
+
             session.update(employee);
+	        System.out.println("dao method caleed...............updated....................");
             session.getTransaction().commit();
         } catch (HibernateException e) {
             session.getTransaction().rollback();

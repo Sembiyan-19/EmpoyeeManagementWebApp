@@ -6,12 +6,12 @@
     <title>Project Home</title>
   </head>
   <body>
-    <a href="project?action=index"><button>Home</button></a>
+    <a href="index"><button>Home</button></a>
     <br><br><br>
-	<a href="project?action=createProject"><button>Add New Project</button></a>
+	<a href="newProject"><button>Add New Project</button></a>
 	<br><br>
 	<div align="right">
-	  <form action="project?action=showProject" method="post">
+	  <form action="showProject">
 		View a project: <input type="number" name=id required>
 		<input type="submit">
 	  </form>
@@ -33,12 +33,12 @@
 			<td><c:out value="${project.name}" /></td>
 			<td><c:out value="${project.department}" /></td>
 			<td>
-			  <a href="project?action=showProject&id=<c:out value='${project.id}' />">
+			  <a href="showProject?id=${project.id}">
 			    View
 			  </a>
 			</td>
 			<td>
-			  <a href="project?action=deleteProject&id=<c:out value='${project.id}' />">
+			  <a href="deleteProject/${project.id}">
 			    Delete
 			  </a>
 			</td>
@@ -46,7 +46,7 @@
 		</c:forEach>
 	</table>
 	<br><br><br>
-	<div align="center"><a href="project?action=showDeletedProjects"><button>Restore project</button></a></div>
-	<a href="project?action=index"><button>Back</button></a>
+	<div align="center"><a href="showDeletedProjects"><button>Restore project</button></a></div>
+	<a href="index"><button>Back</button></a>
   </body>
 </html>

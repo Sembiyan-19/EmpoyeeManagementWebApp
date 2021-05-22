@@ -14,6 +14,7 @@ import com.ideas2it.EmployeeManagementProject.employeeManagement.model.Address;
 import com.ideas2it.EmployeeManagementProject.employeeManagement.model.Employee;
 import com.ideas2it.EmployeeManagementProject.employeeManagement.service.EmployeeService;
 import com.ideas2it.EmployeeManagementProject.employeeManagementException.EmployeeManagementException;
+import com.ideas2it.EmployeeManagementProject.projectManagement.dao.ProjectDao;
 import com.ideas2it.EmployeeManagementProject.projectManagement.model.Project;
 import com.ideas2it.EmployeeManagementProject.projectManagement.service.impl.ProjectServiceImpl;
 import com.ideas2it.EmployeeManagementProject.projectManagement.service.ProjectService;
@@ -26,22 +27,19 @@ import com.ideas2it.EmployeeManagementProject.projectManagement.service.ProjectS
  */
 public class EmployeeServiceImpl implements EmployeeService {
 
-    private EmployeeDao employeeDao = new EmployeeDaoImpl(); 
+    private EmployeeDao employeeDao;
+    
+    public EmployeeServiceImpl(EmployeeDao employeeDao) {
+    	this.employeeDao = employeeDao;
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean addEmployee(int id, String name, float salary,
-            String mobileNumber, Date dateOfBirth, List<String> addressDetails) 
+    public boolean addEmployee(Employee employee) 
             throws EmployeeManagementException {
-        List<Address> addresses = new ArrayList<Address>();
-        addresses.add(new Address(addressDetails.get(0),
-                addressDetails.get(1), addressDetails.get(2),
-                addressDetails.get(3), addressDetails.get(4),
-                addressDetails.get(5), addressDetails.get(6), false));
-        boolean isAdded = employeeDao.insertEmployee(new Employee(id, name, 
-                salary, mobileNumber, dateOfBirth, false, addresses));
+        boolean isAdded = employeeDao.insertEmployee(employee);
         return isAdded;
     }
 
@@ -95,16 +93,15 @@ public class EmployeeServiceImpl implements EmployeeService {
      * {@inheritDoc}
      */
     @Override
-    public boolean updateEmployee(int id, String name, 
-            float salary, String mobileNumber, Date dateOfBirth) 
+    public boolean updateEmployee(Employee updatedEmployee) 
             throws EmployeeManagementException {
     	try {
-	        Employee employee = employeeDao.retrieveEmployee(id);
-	        employee.setName(name);
-	        employee.setSalary(salary);
-	        employee.setMobileNumber(mobileNumber);
-	        employee.setDateOfBirth(dateOfBirth);
-	        return employeeDao.updateEmployee(employee);
+    		Employee employee = employeeDao.retrieveEmployee(updatedEmployee.getId());
+    		List<Address> addresses = employee.getAddresses();
+    		List<Project> projects = employee.getProjects();
+    		updatedEmployee.setAddresses(addresses);
+    		updatedEmployee.setProjects(projects);
+	        return employeeDao.updateEmployee(updatedEmployee);
     	} catch (EmployeeManagementException e) {
     		throw new EmployeeManagementException("Failed to update employee");
     	}
@@ -114,16 +111,11 @@ public class EmployeeServiceImpl implements EmployeeService {
      * {@inheritDoc}
      */
     @Override
-    public boolean addNewAddress(int id, List<String> addressDetails) 
+    public boolean addNewAddress(int id, Address address) 
             throws EmployeeManagementException {
     	try {
 	        Employee employee = employeeDao.retrieveEmployee(id);
-	        List<Address> listOfAddress = employee.getAddresses();
-	        listOfAddress.add(new Address(addressDetails.get(0),
-	                addressDetails.get(1), addressDetails.get(2), 
-	                addressDetails.get(3), addressDetails.get(4),
-	                addressDetails.get(5), addressDetails.get(6), false));
-			employee.setAddresses(listOfAddress);
+	        employee.getAddresses().add(address);
 	        return employeeDao.updateEmployee(employee);
     	} catch (EmployeeManagementException e) {
     		throw new EmployeeManagementException("Failed to add address");
@@ -134,18 +126,18 @@ public class EmployeeServiceImpl implements EmployeeService {
      * {@inheritDoc}
      */
     @Override
-    public boolean deleteExistingAddress(int id, int selectedAddressOption) 
+    public boolean deleteExistingAddress(int id, int addressId) 
             throws EmployeeManagementException {
     	try {
 	        Employee employee = employeeDao.retrieveEmployee(id);
-			int idToBeDeleted 
-			        = retrieveEmployee(id).getAddresses()
-			        .get(selectedAddressOption).getId();
+	        List<Address> addresses = new ArrayList<Address>();
 			for (Address address : employee.getAddresses()) {
-				if (idToBeDeleted == address.getId()) {
-					address.setIsDeleted(true);
+				if (addressId != address.getId()) {
+					addresses.add(address);
 				}
 			}
+			employee.setAddresses(null);
+			employee.setAddresses(addresses);
 			return employeeDao.updateEmployee(employee);
     	} catch (EmployeeManagementException e) {
     		throw new EmployeeManagementException("Failed to delete address");
@@ -156,23 +148,18 @@ public class EmployeeServiceImpl implements EmployeeService {
      * {@inheritDoc}
      */
     @Override
-    public boolean updateExistingAddress(int id, int selectedAddressOption, 
-            String doorNumber, String street, String city, String pincode,
-            String state, String country, String addressType) 
+    public boolean updateExistingAddress(int id, Address updatedAddress) 
             throws EmployeeManagementException {
     	try {
 			Employee employee = employeeDao.retrieveEmployee(id);
-			int idToBeUpdated
-					= retrieveEmployee(id).getAddresses()
-					.get(selectedAddressOption).getId();
 			for (Address address : employee.getAddresses()) {
-				if (idToBeUpdated == address.getId()) {
-					address.setDoorNumber(doorNumber);
-					address.setStreet(street);
-					address.setCity(city);
-	            	address.setPincode(pincode);
-	            	address.setState(state);
-	            	address.setCountry(country);
+				if (updatedAddress.getId() == address.getId()) {
+					address.setDoorNumber(updatedAddress.getDoorNumber());
+					address.setStreet(updatedAddress.getStreet());
+					address.setCity(updatedAddress.getCity());
+	            	address.setPincode(updatedAddress.getPincode());
+	            	address.setState(updatedAddress.getState());
+	            	address.setCountry(updatedAddress.getCountry());
 				}
 			}
 	        return employeeDao.updateEmployee(employee);
@@ -187,7 +174,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public void assignAProject(int projectId, int employeeId) 
             throws EmployeeManagementException {
-        ProjectService projectService = new ProjectServiceImpl();
+        ProjectService projectService = new ProjectServiceImpl(null);
         try {
 	        Employee employee = employeeDao.retrieveEmployee(employeeId);
 	        List<Project> projects = employee.getProjects();
@@ -232,7 +219,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             throws EmployeeManagementException {
         boolean isPresent;
         List<Project> availableProjects = new ArrayList<Project>();
-        ProjectService projectService = new ProjectServiceImpl();
+        ProjectService projectService = new ProjectServiceImpl(null);
         try {
         	Employee employee = employeeDao.retrieveEmployee(employeeId);
 			for (Project project : projectService.getAllProjects()) {

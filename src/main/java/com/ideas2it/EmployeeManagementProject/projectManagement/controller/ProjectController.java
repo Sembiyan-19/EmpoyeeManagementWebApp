@@ -9,8 +9,22 @@ import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 
 import com.ideas2it.EmployeeManagementProject.projectManagement.service.impl.ProjectServiceImpl;
+import com.ideas2it.EmployeeManagementProject.employeeManagement.model.Employee;
+import com.ideas2it.EmployeeManagementProject.employeeManagement.service.EmployeeService;
 import com.ideas2it.EmployeeManagementProject.employeeManagementException.EmployeeManagementException;
+import com.ideas2it.EmployeeManagementProject.projectManagement.model.Project;
 import com.ideas2it.EmployeeManagementProject.projectManagement.service.ProjectService;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
  * Servlet implementation class that act as Controller
@@ -18,427 +32,189 @@ import com.ideas2it.EmployeeManagementProject.projectManagement.service.ProjectS
  * @version 1.1 21 April 2021
  * @author Sembiyan
  */
+@Controller
 public class ProjectController extends HttpServlet {
     
-    private ProjectService projectService = new ProjectServiceImpl();
-       
-	/**
-     * 
-     * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-     * @throws ServletException    
-     *     if an input or output error is detected when the servlet handles
-     * the POST request
-     * @throws IOException    
-     *     if the request for the POST could not be handled
-     */
-	protected void doPost(HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException {
-		switch(request.getParameter("action")) {
-		case "addProject":
-            addProject(request, response);
-            break;
-		case "updateProject":
-            updateProject(request, response);
-            break;
-		case "showProject":
-            showProject(request, response);
-            break;
-		}
-	}
+	ApplicationContext appContext
+			= new ClassPathXmlApplicationContext("bean.xml");
+	private ProjectService projectService 
+			= (ProjectService) appContext.getBean("projectService");
 
-	/**
-     * 
-     * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-     * @throws ServletException    
-     *     if an input or output error is detected when the servlet handles the GET request
-     * @throws IOException    
-     *     if the request for the GET could not be handled
-     */
-    protected void doGet(HttpServletRequest request, 
-    	HttpServletResponse response) throws ServletException, IOException {
-        String action = request.getParameter("action");
-        switch (action) {
-         	case "showAllProjects":
-                showAllProjects(request, response);
-                break;
-            case "createProject":
-                createNewProject(request, response);
-                break;
-            case "showProject":
-                showProject(request, response);
-                break;
-            case "index":
-            	goHomePage(request, response);
-            	break;
-            case "deleteProject":
-	        	deleteProject(request, response);
-	        	break;
-            default:
-            	doGetExtention(action, request, response);
-    	        break;
-         }
-    }
-    
     /**
-     * Extension the switch case in doGet method
-     * @action        action chosen by the user
-     * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
+     * Goes to the home page
      */
-    private void doGetExtention(String action, HttpServletRequest request,
-    		HttpServletResponse response) {
-    	switch (action) {
-	        case "editProject":
-		        editProject(request, response);
-		        break;
-		    case "assignEmployee":
-		        assignAEmployee(request, response);
-		        break;
-		    case "unassignEmployee":
-		        unnassignAEmployee(request, response);
-		        break;
-		    case "showAvailableEmployees":
-		    	showAvailableEmployees(request, response);
-		        break;
-		    case "showDeletedProjects":
-	        	showDeletedProjects(request, response);
-	        	break;
-		    case "restoreProject":
-		    	restoreProject(request, response);
-		    	break;
-		    default:
-		        showAllProjects(request, response);
-		        break;
-    	}
+    @RequestMapping("/index")
+	private String goHomePage() {
+    	return "index";
 	}
     
-    /**
-     * Redirects to the index page
-     * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-     */
-	private void goHomePage(HttpServletRequest request,
-			HttpServletResponse response) {
-		try {
-			response.sendRedirect("index.jsp");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-    
-    /**
-	 * Shows all available projecs
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-    private void showAllProjects(HttpServletRequest request,
-            HttpServletResponse response) {
+    @RequestMapping("/showAllProjects")
+    private ModelAndView showAllProjects() {
+    	ModelAndView modelAndView = new ModelAndView();
     	try {
-    		request.setAttribute("projects", projectService.getAllProjects());
-    		RequestDispatcher requestDispatcher 
-    				= request.getRequestDispatcher("projectHome.jsp");
-			requestDispatcher.forward(request, response);
-		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		} catch (ServletException e) {
-			e.printStackTrace();
-		}  catch (IOException e) {
-			e.printStackTrace();
+    		modelAndView.addObject("projects", projectService.getAllProjects());
+    		modelAndView.setViewName("projectHome");
+    	} catch (EmployeeManagementException e) {
+    		modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
 		}
-		
+    	return modelAndView;
     }
 
-	/**
-	 * Fetches a new project details
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-	private void createNewProject(HttpServletRequest request,
-            HttpServletResponse response) {
-		request.setAttribute("operation", "addProject");
-        RequestDispatcher requestDispatcher 
-                = request.getRequestDispatcher("projectForm.jsp");
-        try {
-			requestDispatcher.forward(request, response);
-		} catch (ServletException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}		
+    @RequestMapping("/newProject")
+   	private ModelAndView createNewProject() {
+    	ModelAndView modelAndView = new ModelAndView("projectForm");
+    	modelAndView.addObject("command", new Project());
+    	modelAndView.addObject("action", "saveProject");
+       	return modelAndView;
     }
 
-	/**
-	 * Inserts the new project created
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-    private void addProject(HttpServletRequest request,
-            HttpServletResponse response) {
-        int id = Integer.parseInt(request.getParameter("id"));
+    @RequestMapping(value="/saveProject", method = RequestMethod.POST)  
+    private ModelAndView addProject(@ModelAttribute Project project) {
+    	ModelAndView modelAndView = new ModelAndView();
         try {
-			if (projectService.checkProjectIdPresenceWithDeleted(id)) {
-				displayMessage(request, response, "project Id already present");
-			} else {
-			    try {
-					projectService.addProject(id, request.getParameter("name"),
-							request.getParameter("manager"), 
-							request.getParameter("department"));
-					response.sendRedirect("project?action=showAllProjects");
-				} catch (EmployeeManagementException e) {
-					displayMessage(request, response, e.getMessage());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		} catch (EmployeeManagementException e) {
-			e.printStackTrace();
-		}
+   			if (projectService.checkProjectIdPresenceWithDeleted(project.getId())) {
+   				modelAndView.addObject("message", "Project Id already used");
+   	    		modelAndView.setViewName("displayMessage");
+   			} else {
+   				projectService.addProject(project);
+   	    		modelAndView.setViewName("redirect:/showAllProjects");
+   			}
+   		} catch (EmployeeManagementException e) {
+   			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
+   		}
+        return modelAndView;
     }
-	
-	/**
-     * Displays the deleted projectss
-     * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-     */
-    private void showDeletedProjects(HttpServletRequest request,
-    		HttpServletResponse response) {
+
+    
+    @RequestMapping(value="/showProject")
+    private ModelAndView showProject(@RequestParam  int id) {
+    	ModelAndView modelAndView = new ModelAndView();
     	try {
-    		request.setAttribute("projects",
+    		if (projectService.checkProjectIdPresence(id)) {
+    			modelAndView.addObject("project", projectService.retrieveProject(id));
+    			modelAndView.setViewName("viewProject");
+    		} else {
+    			modelAndView.addObject("message", "Project Id not present");
+        		modelAndView.setViewName("displayMessage");
+    		}
+    	} catch (EmployeeManagementException e) {
+    		modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
+		}
+    	return modelAndView;
+    }
+
+    @RequestMapping("/showDeletedProjects")
+    private ModelAndView showDeletedProjects() {
+    	ModelAndView modelAndView = new ModelAndView();
+    	try {
+    		modelAndView.addObject("projects",
     				projectService.getDeletedProjects());
-    		RequestDispatcher requestDispatcher 
-    				= request.getRequestDispatcher("deletedProjects.jsp");
-			requestDispatcher.forward(request, response);
+    		modelAndView.setViewName("deletedProjects");
 		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		} catch (ServletException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
 		}
+    	return modelAndView;
 	}
     
-	/**
-     * Restores a deleted project
-     * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-     */
-    private void restoreProject(HttpServletRequest request,
-    		HttpServletResponse response) {
-    	int id = Integer.parseInt(request.getParameter("id"));
+    @RequestMapping(value="/deleteProject/{id}")
+    private ModelAndView deleteProject(@PathVariable int id) {
+    	ModelAndView modelAndView = new ModelAndView();
+    	try {
+    		projectService.deleteProject(id);
+    		modelAndView.setViewName("redirect:/showAllProjects");
+		} catch (EmployeeManagementException e) {
+			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
+		}
+    	return modelAndView;
+    }
+    
+    @RequestMapping(value="/restoreProject/{id}")
+    private ModelAndView restoreProject(@PathVariable int id) {
+    	ModelAndView modelAndView = new ModelAndView();
     	try {
     		projectService.restoreProject(id);
-			response.sendRedirect("project?action=showAllProjects");
+    		modelAndView.setViewName("redirect:/showAllProjects");
 		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		} catch (IOException e) {
-			e.printStackTrace();
+			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
 		}
+    	return modelAndView;
 	}    
 
-    /**
-	 * Assigns a employee for the project
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-	private void assignAEmployee(HttpServletRequest request,
-            HttpServletResponse response) {
-    	int projectId = Integer.parseInt(request.getParameter("projectId"));
+    @RequestMapping(value="/assignEmployee/{projectId}/{employeeId}")
+	private ModelAndView assignAEmployee(@PathVariable int projectId,
+			@PathVariable int employeeId) {
+    	ModelAndView modelAndView = new ModelAndView();
     	try {
-    		projectService.assignAEmployee(projectId,
-    				Integer.parseInt(request.getParameter("employeeId")));
-			response.sendRedirect("project?action=showProject&id=" 
-					+ projectId);
+    		projectService.assignAEmployee(projectId, employeeId);
+    		modelAndView.setViewName("redirect:/showProject?id="+projectId);
 		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		} catch (IOException e) {
-			e.printStackTrace();
+			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
 		}
+		return modelAndView;
 	}
 
-	/**
-	 * Gets the available employees who can be assigned for the project
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-	private void showAvailableEmployees(HttpServletRequest request,
-            HttpServletResponse response) {
-    	int id = Integer.parseInt(request.getParameter("id"));
+    @RequestMapping(value="/showAvailableEmployees")
+	private ModelAndView showAvailableEmployees(@RequestParam int id) {
+    	ModelAndView modelAndView = new ModelAndView();
     	try {
-    		request.setAttribute("project", 
+    		modelAndView.addObject("project", 
     				projectService.retrieveProject(id));
-    		request.setAttribute("availableEmployees", 
+    		modelAndView.addObject("availableEmployees", 
     				projectService.getAvailableEmployees(id));
-    		RequestDispatcher requestDispatcher 
-                	= request.getRequestDispatcher("viewProject.jsp");
-			requestDispatcher.forward(request, response);
+    		modelAndView.setViewName("viewProject");
 		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		} catch (ServletException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
 		}
+		return modelAndView;
 	}
 
-	/**
-	 * Unassigns a employee from the project
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-	private void unnassignAEmployee(HttpServletRequest request,
-            HttpServletResponse response) {
-    	int projectId = Integer.parseInt(request.getParameter("projectId"));
+	@RequestMapping(value="/unassignEmployee/{projectId}/{employeeId}")
+	private ModelAndView unnassignAEmployee(@PathVariable int projectId,
+			@PathVariable int employeeId) {
+		ModelAndView modelAndView = new ModelAndView();
     	try {
-			projectService.unassignAEmployee(projectId,
-					Integer.parseInt(request.getParameter("employeeId")));
-			response.sendRedirect("project?action=showProject&id=" + projectId);
+			projectService.unassignAEmployee(projectId, employeeId);
+			modelAndView.setViewName("redirect:/showProject?id="+projectId);
 		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		} catch (IOException e) {
-			e.printStackTrace();
+			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
 		}
+		return modelAndView;
 	}
 
-	/**
-	 * Fetches a new set of project's details
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-    private void editProject(HttpServletRequest request,
-            HttpServletResponse response) {
-        int id = Integer.parseInt(request.getParameter("id"));
-        request.setAttribute("operation", "updateProject");
-        try {
-        request.setAttribute("project", projectService.retrieveProject(id));
-        RequestDispatcher requestDispatcher 
-                = request.getRequestDispatcher("projectForm.jsp");
-			requestDispatcher.forward(request, response);
-		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		} catch (ServletException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-    }
- 
-    /**
-	 * Displays a project's details
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-    private void showProject(HttpServletRequest request,
-            HttpServletResponse response) {
-        int id = Integer.parseInt(request.getParameter("id"));
-        try {
-			if (projectService.checkProjectIdPresence(id)) {
-			    request.setAttribute("project", 
-			    	projectService.retrieveProject(id));
-			    RequestDispatcher requestDispatcher 
-			            = request.getRequestDispatcher("viewProject.jsp");
-				requestDispatcher.forward(request, response);
-			} else {
-				displayMessage(request, response, "project Id not present");
-			}
-		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		} catch (ServletException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-    }
-    
-    /**
-	 * Deletes a project
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-    private void deleteProject(HttpServletRequest request,
-            HttpServletResponse response) {
-    	try {
-        projectService.deleteProject(Integer.parseInt(request.getParameter("id")));
-			response.sendRedirect("project?action=showAllProjects");
-		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-    }
-    
-    /**
-	 * Updates a project
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-    private void updateProject(HttpServletRequest request,
-            HttpServletResponse response) {
-        int id = Integer.parseInt(request.getParameter("id"));
-        try {
-        	projectService.updateProject(id, request.getParameter("name"), 
-        			request.getParameter("manager"),
-        			request.getParameter("department"));
-			response.sendRedirect("project?action=showProject&id="+id);
-		} catch (EmployeeManagementException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-    }
-    
-    /**
-	 * Redircts to a page and displays a given message
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-     * @param message        message which has to be displayed
-	 */
-    private void displayMessage(HttpServletRequest request, 
-    		HttpServletResponse response, String message) {
-		request.setAttribute("message", message);
-		RequestDispatcher requestDispatcher 
-				= request.getRequestDispatcher("displayMessage.jsp");
+	@RequestMapping("/editProject")
+    private ModelAndView editProject(@RequestParam int id) {
+		ModelAndView modelAndView = new ModelAndView();
 		try {
-			requestDispatcher.forward(request, response);
-		} catch (ServletException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+			modelAndView.addObject("command", projectService.retrieveProject(id));
+			modelAndView.addObject("action", "updateProject");
+			modelAndView.addObject("id", id);
+			modelAndView.setViewName("projectForm");
+		} catch (EmployeeManagementException e) {
+			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
 		}
-	}
+    	return modelAndView;
+    }
+    
+	@RequestMapping(value="/updateProject", method = RequestMethod.POST)
+    private ModelAndView updateProject(@ModelAttribute Project project) {
+		ModelAndView modelAndView = new ModelAndView();
+        try {
+        	projectService.updateProject(project);
+        	modelAndView.setViewName("redirect:/showProject?id="+project.getId());
+		} catch (EmployeeManagementException e) {
+			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
+		}
+        return modelAndView;
+    }    
 }

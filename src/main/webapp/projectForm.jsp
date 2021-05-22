@@ -1,24 +1,35 @@
-<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
-    pageEncoding="ISO-8859-1"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
-<html>
-  <head>
-    <title>Edit Project</title>
-  </head>
-  <body>
-	<form action="project?action=${operation}" method = "post">
-	  Project id: <input type = "number" name = "id" value = "${project.id}" required <c:if test="${project != null}"> <c:out value="${'readonly'}"/> </c:if>><br><br>
-	  Project name: <input type = "text" name = "name" value = "${project.name}" required><br><br>
-	  Project manager: <input type = "text" name = "manager" value = "${project.manager}" required><br><br>
-	  Department: <input type = "text" name = "department" value = "${project.department}" required><br><br>
-	  <input type = "submit">
-	</form>
-	<br><br><br>
-	<c:if test="${project != null}">
-	  <a href="project?action=showProject&id=${project.id}"><button>Back</button></a>
-    </c:if>
-    <c:if test="${project == null}">
-      <a href="project?action=showAllProjects"><button>Back</button></a>
-    </c:if>
-  </body>
-</html>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>    
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>    
+  
+        <h1>Enter the Project Details</h1>  
+       <form:form method="post" action="${action}">    
+        <table > 
+        <tr>    
+          <td>id : </td>   
+          <td><form:input path="id" required="required" /></td>  
+         </tr>   
+         <tr>    
+          <td>Name : </td>   
+          <td><form:input path="name" required="required" /></td>  
+         </tr>    
+         <tr>    
+          <td>Manager :</td>    
+          <td><form:input path="manager" required="required" /></td>  
+         </tr>   
+         <tr>    
+          <td>Department :</td>    
+          <td><form:input path="department" required="required" /></td>  
+         </tr>   
+         <tr>    
+          <td> </td>    
+          <td><input type="submit"/></td>    
+         </tr>    
+        </table>    
+       </form:form>    
+       <br><br><br>
+       <c:if test="${action == 'saveProject'}">
+       <a href="showAllProjects"><button>Back</button></a>
+       </c:if>
+       <c:if test="${action == 'updateProject'}">
+       <a href="showProject?id=${id}"><button>Back</button></a>
+       </c:if>

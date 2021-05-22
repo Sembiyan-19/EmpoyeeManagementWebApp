@@ -36,6 +36,16 @@ public class Employee {
         this.addresses = addresses;
     }
 
+    public Employee(int id, String name, float salary, String mobileNumber,
+            Date dateOfBirth, List<Address> addresses) {
+        this.id = id;
+        this.name = name;
+        this.salary = salary;
+        this.mobileNumber = mobileNumber;
+        this.dateOfBirth = dateOfBirth;
+        this.addresses = addresses;
+    }
+    
     public String toString() {
         String listOfAddress = "";
         if (0 != addresses.size()) {

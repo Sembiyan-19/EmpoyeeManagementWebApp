@@ -11,7 +11,7 @@
     <title>View Project</title>
   </head>
   <body>
-    <a href = "project?action=index"><button>Homeee</button></a>
+    <a href = "index"><button>Home</button></a>
     <br><br><br>
 	<% 
 	    Project project = (Project)request.getAttribute("project"); 
@@ -50,8 +50,8 @@
 	    <td><%= employee.getId() %></td>
 	    <td><%= employee.getName() %></td>
 	    <td>
-	      <a href = "project?action=unassignEmployee&projectId=<%=
-	          project.getId() %>&employeeId=<%= employee.getId() %>">
+	      <a href = "unassignEmployee/<%=
+	          project.getId() %>/<%= employee.getId() %>">
 	        <button>Unassign</button>
 	      </a>
 	    </td>
@@ -60,16 +60,16 @@
 	</table>
 	<% } %>
 	<br><br><br>
-	<a href = "project?action=showAvailableEmployees&id=<%= project.getId() %>">
+	<a href = "showAvailableEmployees?id=<%= project.getId() %>">
 	  <button>Assign employees</button>
 	</a>
-	<a href = "project?action=deleteProject&id=<%= project.getId() %>">
+	<a href = "deleteProject/<%= project.getId() %>">
 	  <button>Delete</button>
 	</a>
-	<a href = "project?action=editProject&id=<%= project.getId() %>">
+	<a href = "editProject?id=<%= project.getId() %>">
 	  <button>Edit</button>
 	</a>
-	<a href="project?action=showAllProjects"><button>Back</button></a>
+	<a href="showAllProjects"><button>Back</button></a>
     <br><br><br>
     <% 
         List<Employee> availableEmployees 
@@ -86,8 +86,7 @@
 	    <td><%= employee.getId() %></td>
 	    <td><%= employee.getName() %></td>
 	    <td>
-	      <a href = "project?action=assignEmployee&projectId=<%=
-	          project.getId() %>&employeeId=<%= employee.getId() %>">
+	      <a href = "assignEmployee/<%= project.getId() %>/<%= employee.getId() %>">
 	      	<button>Assign</button>
 	      </a>
 	    </td>

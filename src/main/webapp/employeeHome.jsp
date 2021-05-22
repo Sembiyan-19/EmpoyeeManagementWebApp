@@ -6,12 +6,12 @@
     <title>Employee Home</title>
   </head>
   <body>
-    <a href="employee?action=index"><button>Home</button></a>
+    <a href="index"><button>Home</button></a>
     <br><br><br>
-	<a href="employee?action=createEmployee"><button>Add New employee</button></a>
+	<a href="newEmployee"><button>Add New employee</button></a>
 	<br><br>
 	<div align="right">
-	  <form action="employee?action=showEmployee" method="post">
+	  <form action="showEmployee" method="post">
 		View a Employee: <input type="text" name="id">
 		<input type="submit">
 	  </form><br>
@@ -35,12 +35,12 @@
 			<td><c:out value="${employee.mobileNumber}" /></td>
 			<td><c:out value="${employee.dateOfBirth}" /></td>
 			<td>
-			  <a href="employee?action=showEmployee&id=<c:out value='${employee.id}' />">
+			  <a href="showEmployee?id=${employee.id}">
 			    View
 			  </a>
 			</td>
 			<td>
-			  <a href="employee?action=deleteEmployee&id=<c:out value='${employee.id}' />">
+			  <a href="deleteEmployee/${employee.id}">
 			    Delete
 			  </a>
 			</td>
@@ -48,7 +48,7 @@
 		</c:forEach>
 	</table>
 	<br><br><br>
-	<div align="center"><a href="employee?action=viewDeletedEmployees"><button>Restore employee</button></a></div>
-	<a href="employee?action=index"><button>Back</button></a>	
+	<div align="center"><a href="showDeletedEmployees"><button>Restore employee</button></a></div>
+	<a href="index"><button>Back</button></a>
   </body>
 </html>

@@ -10,6 +10,6 @@
 <body>
 	<h2><%= request.getAttribute("message") %></h2>
 	<br><br><br>
-	<a href="project?action=index">Home</a>
+	<a href="index">Home</a>
 </body>
 </html>

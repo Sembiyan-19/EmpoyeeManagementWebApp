@@ -8,12 +8,27 @@ import java.util.List;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
+
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 
+import com.ideas2it.EmployeeManagementProject.employeeManagement.model.Address;
+import com.ideas2it.EmployeeManagementProject.employeeManagement.model.Employee;
 import com.ideas2it.EmployeeManagementProject.employeeManagement.service.EmployeeService;
 import com.ideas2it.EmployeeManagementProject.employeeManagement.service.impl.EmployeeServiceImpl;
 import com.ideas2it.EmployeeManagementProject.employeeManagementException.EmployeeManagementException;
+import com.ideas2it.EmployeeManagementProject.projectManagement.model.Project;
 
 /**
  * Servlet implementation class projectController
@@ -21,601 +36,259 @@ import com.ideas2it.EmployeeManagementProject.employeeManagementException.Employ
  * @version 1.1 21 April 2021
  * @author Sembiyan
  */
+@Controller
 public class EmployeeController extends HttpServlet {
 	
-	private EmployeeService employeeService = new EmployeeServiceImpl();
+	ApplicationContext appContext
+    		= new ClassPathXmlApplicationContext("bean.xml");
+	private EmployeeService employeeService 
+			= (EmployeeService) appContext.getBean("employeeService");
       
-	/**
-     * 
-     * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-     * @throws ServletException    
-     *     if an input or output error is detected when the servlet handles
-     * the POST request
-     * @throws IOException    
-     *     if the request for the POST could not be handled
-     */
-	protected void doPost(HttpServletRequest request, 
-			HttpServletResponse response) throws ServletException, IOException {
-		switch (request.getParameter("action")) {
-			case "addEmployee":     
-			    addEmployee(request, response);
-		    	 break;
-			case "updateEmployee":
-			     updateEmployee(request, response);
-		    	 break;
-			case "addAddress":
-	       	 	addNewAddress(request, response);
-	       	 	break;
-	        case "updateAddress":
-	       	 	updateAddress(request, response);
-	       	 	break;
-	        case "showEmployee":
-		    	 showEmployee(request, response);
-		    	 break;
-		}
+    @RequestMapping("/")
+	private String goToIndex() {
+    	return "index";
 	}
 
-	/**
-     * 
-     * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-     * @throws ServletException    
-     *     if an input or output error is detected when the servlet handles
-     * the GET request
-     * @throws IOException    
-     *     if the request for the GET could not be handled
-     */
-	protected void doGet(HttpServletRequest request, 
-				HttpServletResponse response) throws ServletException, IOException {
-		 String action = request.getParameter("action");
-		 switch (action) {
-		     case "showAllEmployees":
-	    	     showAllEmployees(request, response);
-	    	     break;
-		     case "createEmployee":
-		    	 createNewEmployee(request, response);
-		    	 break;
-		     case "showEmployee":
-		    	 showEmployee(request, response);
-		    	 break;
-		     case "deleteEmployee":
-		    	 deleteEmployee(request, response);
-		    	 break;
-		     case "editEmployee":
-		    	 editEmployee(request, response);
-		    	 break;
-		     case "assignProject":
-	             assignAProject(request, response);
-	             break;
-	         default:
-	        	 doGetExtention(action, request, response);
-	        	 break;
-		 }
-	}
-	
-	/**
-     * Extension the switch case in doGet method
-     * @action        action chosen by the user
-     * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 *  @throws ServletException    
-     *     if an input or output error is detected when the servlet handles
-     * the GET request
-     * @throws IOException    
-     *     if the request for the GET could not be handled
-     */
-    private void doGetExtention(String action, HttpServletRequest request,
-    		HttpServletResponse response) throws ServletException, IOException {
-    	switch (action) {
-    	case "unassignProject":
-            unnassignAProject(request, response);
-            break;
-        case "showAvailableProjects":
-            showAvailableProjects(request, response);
-            break;
-        case "deleteAddress":
-       	 	deleteExistingAddress(request, response);
-       	 	break;
-        case "editAddress":
-       	 	editAddress(request, response);
-       	 	break;
-        case "createAddress":
-       	 	createNewAddress(request, response);
-       	 	break;
-        case "index":
-        	goHomePage(request, response);
-        	break;
-        case "viewDeletedEmployees":
-        	showDeletedEmployees(request, response);
-        	break;
-        case "restoreEmployee":
-	    	restoreEmployee(request, response);
-	    	break;
-	    default:
-	    	showAllEmployees(request, response);
-	    	break;
-    	}
+    @RequestMapping("/showAllEmployees")
+    private ModelAndView showAllEmployees() {
+    	ModelAndView modelAndView = new ModelAndView();
+    	try {
+    		modelAndView.addObject("employees", 
+    				employeeService.getAllEmployees());
+    		modelAndView.setViewName("employeeHome");
+		} catch (EmployeeManagementException e) {
+			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
+		}
+    	return modelAndView;
     }
-	
-	/**
-     * Redirects to the index page
-     * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-     */
-	private void goHomePage(HttpServletRequest request, 
-			HttpServletResponse response) {
-		try {
-			response.sendRedirect("index.jsp");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-    
-    /**
-	 * Shows all available employees
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-    private void showAllEmployees(HttpServletRequest request,
-    	        HttpServletResponse response) {
-    	try {
-    		request.setAttribute("employees", employeeService.getAllEmployees());
-    		RequestDispatcher requestDispatcher 
-    				= request.getRequestDispatcher("employeeHome.jsp");
-			requestDispatcher.forward(request, response);
-		} catch (ServletException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		}
-    }
-	
-	/**
-     * Displays the deleted employees
-     * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-     */
-    private void showDeletedEmployees(HttpServletRequest request,
-    		HttpServletResponse response) {
-    	try {
-    		request.setAttribute("employees",
-    				employeeService.getDeletedEmployees());
-    		RequestDispatcher requestDispatcher 
-    	        	= request.getRequestDispatcher("deletedEmployees.jsp");
-			requestDispatcher.forward(request, response);
-		} catch (ServletException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		}
-	}
-
-	/**
-     * Restores a deleted employee
-     * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-     */
-    private void restoreEmployee(HttpServletRequest request,
-    		HttpServletResponse response) {
-    	try {
-    		employeeService.restoreEmployee(Integer.parseInt(request.getParameter("id")));
-			response.sendRedirect("employee?action=showAllEmployees");
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		}
-		
-	}
-
-    /**
-     * Deletes a existing address for the employee
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-     */
-	private void deleteExistingAddress(HttpServletRequest request,
-		        HttpServletResponse response) {
-		int employeeId = Integer.parseInt(request.getParameter("id"));
-		try {
-			employeeService.deleteExistingAddress(employeeId,
-					Integer.parseInt(request.getParameter("option")));
-			response.sendRedirect("employee?action=showEmployee&id=" 
-					+ employeeId);
-		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-	}
-
-	/**
-	 * Assigns a project to the employee
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-	private void assignAProject(HttpServletRequest request,
-		        HttpServletResponse response) {
-    	int projectId = Integer.parseInt(request.getParameter("projectId"));
-    	int employeeId = Integer.parseInt(request.getParameter("employeeId"));
-    	try {
-    		employeeService.assignAProject(projectId, employeeId);
-			response.sendRedirect("employee?action=showEmployee&id=" 
-					+ employeeId);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		}
-	}
-
-	/**
-	 * Gets the available projects which can be assigned for the employee
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-	private void showAvailableProjects(HttpServletRequest request,
-		        HttpServletResponse response) {
-    	int id = Integer.parseInt(request.getParameter("id"));
-    	try {
-    		request.setAttribute("employee",
-    				employeeService.retrieveEmployee(id));
-    		request.setAttribute("availableProjects",
-    				employeeService.getAvailableProjects(id));
-    		RequestDispatcher requestDispatcher 
-    				= request.getRequestDispatcher("viewEmployee.jsp");
-			requestDispatcher.forward(request, response);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ServletException e) {
-			e.printStackTrace();
-		} catch (EmployeeManagementException e) {
-			displayMessage(request, response,
-					"Failed to get available projects");
-		}
+   
+    @RequestMapping("/newEmployee")
+	private ModelAndView createNewEmployee() {
+    	ModelAndView modelAndView = new ModelAndView("employeeForm");
+    	modelAndView.addObject("employee", new Employee());
+       	modelAndView.addObject("action", "saveEmployee");
+       	return modelAndView;
 	}
 	
-	/**
-	 * Unassigns a project for the employee
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-	private void unnassignAProject(HttpServletRequest request,
-		        HttpServletResponse response) {
-    	int projectId = Integer.parseInt(request.getParameter("projectId"));
-    	int employeeId = Integer.parseInt(request.getParameter("employeeId"));
+    @RequestMapping(value="/saveEmployee", method = RequestMethod.POST)
+    private ModelAndView addEmployee(@ModelAttribute Employee employee) {
+    	ModelAndView modelAndView = new ModelAndView();
     	try {
-    		employeeService.unassignAProject(projectId, employeeId);
-			response.sendRedirect("employee?action=showEmployee&id=" 
-					+ employeeId);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
+    		if(employeeService.checkEmployeeIdPresenceIncludingDeleted(employee.getId())) {
+    			modelAndView.addObject("message", "Employee Id already used");
+        		modelAndView.setViewName("displayMessage");
+    		}  else {
+   				employeeService.addEmployee(employee);
+   	    		modelAndView.setViewName("redirect:/showAllEmployees");
+   			}
+    	} catch (EmployeeManagementException e) {
+    		modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
 		}
-	}
-	
-	/**
-	 * Fetches the new address details of the employee
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-	private void createNewAddress(HttpServletRequest request,
-		        HttpServletResponse response) {
-		request.setAttribute("operation", "addAddress");
-		request.setAttribute("id",
-				Integer.parseInt(request.getParameter("id")));
-		request.setAttribute("option", 1);
-        RequestDispatcher requestDispatcher 
-                = request.getRequestDispatcher("addressForm.jsp");
-        try {
-			requestDispatcher.forward(request, response);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ServletException e) {
-			e.printStackTrace();
-		}
-    }
-
-	/**
-	 * Edits the existing address of the employee
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-    private void editAddress(HttpServletRequest request,
-    	        HttpServletResponse response) {
-        int id = Integer.parseInt(request.getParameter("id"));
-        int selectedOption = Integer.parseInt(request.getParameter("option"));
-        try {
-	        request.setAttribute("address",
-	        		employeeService.retrieveEmployee(id).getAddresses().get(selectedOption));
-	        request.setAttribute("id", id);
-	        request.setAttribute("option", selectedOption);
-	        request.setAttribute("operation", "updateAddress");
-	        RequestDispatcher requestDispatcher 
-	                = request.getRequestDispatcher("addressForm.jsp");
-			requestDispatcher.forward(request, response);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ServletException e) {
-			e.printStackTrace();
-		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		}
-    }
-	
-    /**
-	 * Fetches a new employee details
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-	private void createNewEmployee(HttpServletRequest request,
-		        HttpServletResponse response) {
-		request.setAttribute("operation", "addEmployee");
-		RequestDispatcher requestDispatcher 
-		        = request.getRequestDispatcher("employeeForm.jsp");
-    	try {
-			requestDispatcher.forward(request, response);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ServletException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	/**
-	 * Fetches a new set of employee's details
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-	private void editEmployee(HttpServletRequest request,
-		        HttpServletResponse response) {
-		try {
-	    	request.setAttribute("operation", "updateEmployee");
-	    	request.setAttribute("employee", 
-	    			employeeService.retrieveEmployee(Integer.parseInt(request.getParameter("id"))));
-	    	RequestDispatcher requestDispatcher 
-	    	        = request.getRequestDispatcher("employeeForm.jsp");
-				requestDispatcher.forward(request, response);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ServletException e) {
-			e.printStackTrace();
-		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		}
-	}
-
-	/**
-	 * Inserts the new address obtained
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-	private void addNewAddress(HttpServletRequest request,
-		        HttpServletResponse response) {
-		List<String> address = new ArrayList<String>();
-		int id = Integer.parseInt(request.getParameter("id"));
-		address.add(request.getParameter("doorNumber"));
-		address.add(request.getParameter("street"));
-		address.add(request.getParameter("city"));
-		address.add(request.getParameter("pincode"));
-		address.add(request.getParameter("state"));
-		address.add(request.getParameter("country"));
-		address.add("secondary");
-		try {
-			employeeService.addNewAddress(id, address);
-			response.sendRedirect("employee?action=showEmployee&id=" + id);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		}
-	}
-	
-	/**
-	 * Inserts the new employee created
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-    private void addEmployee(HttpServletRequest request,
-    	        HttpServletResponse response) {
-    	int id = Integer.parseInt(request.getParameter("id"));
-    	try {
-    		if (employeeService.checkEmployeeIdPresenceIncludingDeleted(id)) {
-    			displayMessage(request, response, "Employee Id already present");
-    		} else {
-		    	List<String> address = new ArrayList<String>();
-		    	address.add(request.getParameter("doorNumber"));
-		    	address.add(request.getParameter("street"));
-		    	address.add(request.getParameter("city"));
-		    	address.add(request.getParameter("pincode"));
-		    	address.add(request.getParameter("state"));
-		    	address.add(request.getParameter("country"));
-		    	address.add("permanent");
-		     	employeeService.addEmployee(id, request.getParameter("name"), 
-		     			Float.parseFloat(request.getParameter("salary")),
-		     			request.getParameter("mobileNumber"),
-		     			new SimpleDateFormat("yyyy-MM-dd").parse(request.getParameter("dateOfBirth")),
-		     			address);
-		     	response.sendRedirect("employee?action=showAllEmployees");
-    		}
-     	} catch (IOException e) {
-     		e.printStackTrace();
-     	} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		}  catch (ParseException e) {
-			e.printStackTrace();
-		}
+    	return modelAndView;
     }
     
-    /**
-	 * Displays a employee's details
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-    private void showEmployee(HttpServletRequest request,
-    	        HttpServletResponse response) {
-    	int id = Integer.parseInt(request.getParameter("id"));
+    @RequestMapping(value="/showEmployee")
+    private ModelAndView showEmployee(@RequestParam  int id) {
+    	ModelAndView modelAndView = new ModelAndView();
     	try {
     		if (employeeService.checkEmployeeIdPresence(id)) {
-    			request.setAttribute("employee",
+    			modelAndView.addObject("employee", 
     					employeeService.retrieveEmployee(id));
-    			RequestDispatcher requestDispatcher 
-	    	        	= request.getRequestDispatcher("viewEmployee.jsp");
-				requestDispatcher.forward(request, response);
+    			modelAndView.setViewName("viewEmployee");
     		} else {
-    			displayMessage(request, response, "Employee Id not present");
+    			modelAndView.addObject("message", "Employee Id not present");
+        		modelAndView.setViewName("displayMessage");
     		}
-    	} catch (IOException e) {
-    		e.printStackTrace();
-		} catch (ServletException e) {
-			e.printStackTrace();
-		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
+    	} catch (EmployeeManagementException e) {
+    		modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
 		}
+    	return modelAndView;
     }
-    
-    /**
-	 * Deletes a employee
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-    private void deleteEmployee(HttpServletRequest request,
-    	        HttpServletResponse response) {
+
+    @RequestMapping("/showDeletedEmployees")
+    private ModelAndView showDeletedEmployees() {
+    	ModelAndView modelAndView = new ModelAndView();
     	try {
-    		employeeService.deleteEmployee(Integer.parseInt(request.getParameter("id")));
-			response.sendRedirect("employee?action=showAllEmployees");
-		} catch (IOException e) {
-			e.printStackTrace();
+    		modelAndView.addObject("employees",
+    				employeeService.getDeletedEmployees());
+    		modelAndView.setViewName("deletedEmployees");
 		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
+			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
 		}
-    }
-    
-    /**
-	 * Updates a employee
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-    private void updateEmployee(HttpServletRequest request,
-    	        HttpServletResponse response) {
-    	int id = Integer.parseInt(request.getParameter("id"));
-    	try {
-    		employeeService.updateEmployee(id, request.getParameter("name"),
-    				Float.parseFloat(request.getParameter("salary")),
-    				request.getParameter("mobileNumber"),
-    				new SimpleDateFormat("yyyy-MM-dd").parse(request.getParameter("dateOfBirth")));
-   			response.sendRedirect("employee?action=showEmployee&id=" + id);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-    }
-    
-    /**
-	 * Updates a existing address
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-	 */
-    private void updateAddress(HttpServletRequest request,
-    	        HttpServletResponse response) {
-    	int id = Integer.parseInt(request.getParameter("id"));
-    	try {
-    		employeeService.updateExistingAddress(id,
-	    			Integer.parseInt(request.getParameter("option")), 
-	    			request.getParameter("doorNumber"),
-	    			request.getParameter("street"),
-	    			request.getParameter("city"),
-	    			request.getParameter("pincode"),
-	    			request.getParameter("state"),
-	    			request.getParameter("country"), "permanent");
-			response.sendRedirect("employee?action=showEmployee&id=" + id);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (EmployeeManagementException e) {
-			displayMessage(request, response, e.getMessage());
-		}
-    }
-    
-    /**
-	 * Redircts to a page and displays a given message
-	 * @param request
-     *     object that contains the request the client has made of the servlet
-     * @param response    
-     *     object that contains the response the servlet sends to the client
-     * @param message        message which has to be displayed
-	 */
-    private void displayMessage(HttpServletRequest request, 
-    			HttpServletResponse response, String message) {
-		request.setAttribute("message", message);
-		RequestDispatcher requestDispatcher 
-				= request.getRequestDispatcher("displayMessage.jsp");
-		try {
-			requestDispatcher.forward(request, response);
-		} catch (ServletException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+    	return modelAndView;
 	}
+
+    @RequestMapping(value="/deleteEmployee/{id}")
+    private ModelAndView deleteEmployee(@PathVariable int id) {
+    	ModelAndView modelAndView = new ModelAndView();
+    	try {
+    		employeeService.deleteEmployee(id);
+    		modelAndView.setViewName("redirect:/showAllEmployees");
+		} catch (EmployeeManagementException e) {
+			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
+		}
+    	return modelAndView;
+    }
+    
+    @RequestMapping(value="/restoreEmployee/{id}")
+    private ModelAndView restoreProject(@PathVariable int id) {
+    	ModelAndView modelAndView = new ModelAndView();
+    	try {
+    		employeeService.restoreEmployee(id);
+    		modelAndView.setViewName("redirect:/showAllEmployees");
+		} catch (EmployeeManagementException e) {
+			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
+		}
+    	return modelAndView;
+	}    
+    
+    @RequestMapping(value="/assignProject/{projectId}/{employeeId}")
+	private ModelAndView assignAProject(@PathVariable int projectId,
+			@PathVariable int employeeId) {
+    	ModelAndView modelAndView = new ModelAndView();
+    	try {
+    		employeeService.assignAProject(projectId, employeeId);
+    		modelAndView.setViewName("redirect:/showEmployee?id="+employeeId);
+    	} catch (EmployeeManagementException e) {
+    		modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
+    	}
+    	return modelAndView;
+    }
+
+    @RequestMapping(value="/showAvailableProjects")
+	private ModelAndView showAvailableProjects(@RequestParam int id) {
+    	ModelAndView modelAndView = new ModelAndView();
+		try {
+			modelAndView.addObject("employee",
+					employeeService.retrieveEmployee(id));
+			modelAndView.addObject("availableProjects",
+					employeeService.getAvailableProjects(id));
+			modelAndView.setViewName("viewEmployee");
+		} catch (EmployeeManagementException e) {
+			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
+		}
+		return modelAndView;
+	}
+
+    @RequestMapping(value="/unassignProject/{projectId}/{employeeId}")
+	private ModelAndView unnassignAProject(@PathVariable int projectId,
+			@PathVariable int employeeId) {
+    	ModelAndView modelAndView = new ModelAndView();
+		try {
+			employeeService.unassignAProject(projectId, employeeId);
+			modelAndView.setViewName("redirect:/showEmployee?id="+employeeId);
+		} catch (EmployeeManagementException e) {
+			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
+		}
+		return modelAndView;
+	}
+
+    @RequestMapping("/editEmployee")
+	private ModelAndView editEmployee(@RequestParam int id) {
+    	ModelAndView modelAndView = new ModelAndView();
+		try {
+	    	modelAndView.addObject("command", 
+	    			employeeService.retrieveEmployee(id));
+	    	modelAndView.addObject("action", "updateEmployee");
+	    	modelAndView.addObject("id", id);
+	    	modelAndView.setViewName("employeeForm");
+		} catch (EmployeeManagementException e) {
+			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
+		}
+		return modelAndView;
+	}
+
+	@RequestMapping(value="/updateEmployee", method = RequestMethod.POST)
+    private ModelAndView updateEmployee(@ModelAttribute Employee employee) {
+		ModelAndView modelAndView = new ModelAndView();
+        try {
+        	employeeService.updateEmployee(employee);
+        	modelAndView.setViewName("redirect:/showEmployee?id="+employee.getId());
+		} catch (EmployeeManagementException e) {
+			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
+		}
+        return modelAndView;
+    }
+    
+    @RequestMapping("/newAddress")
+	private ModelAndView createNewAddress(@RequestParam int employeeId) {
+    	ModelAndView modelAndView = new ModelAndView("addressForm");
+    	modelAndView.addObject("command", new Address());
+       	modelAndView.addObject("action", 
+       			"saveAddress?employeeId="+employeeId);
+       	modelAndView.addObject("id", employeeId);
+       	return modelAndView;
+	}
+	
+    @RequestMapping(value="/saveAddress", method = RequestMethod.POST)
+    private ModelAndView addNewAddress(@RequestParam int employeeId, 
+    		@ModelAttribute Address address) {
+    	ModelAndView modelAndView = new ModelAndView();
+    	try {
+    		employeeService.addNewAddress(employeeId, address);
+    		modelAndView.setViewName("redirect:/showEmployee?id="+employeeId);
+    	} catch (EmployeeManagementException e) {
+    		modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
+		}
+    	return modelAndView;
+    }
+	
+    @RequestMapping("/deleteAddress")
+	private ModelAndView deleteExistingAddress(@RequestParam int id, 
+			@RequestParam int addressId) {
+    	ModelAndView modelAndView = new ModelAndView();
+		try {
+			employeeService.deleteExistingAddress(id, addressId);
+			modelAndView.setViewName("redirect:/showEmployee?id="+id);
+		} catch (EmployeeManagementException e) {
+			modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
+		}
+		return modelAndView;
+	}
+
+    @RequestMapping("/editAddress")
+    private ModelAndView editAddress(@RequestParam int employeeId, @RequestParam int option) {
+    	ModelAndView modelAndView = new ModelAndView();
+    	Address address = null;
+    	try {
+    		address = employeeService.retrieveEmployee(employeeId).getAddresses().get(option);
+    		modelAndView.addObject("command", address);
+           	modelAndView.addObject("action", 
+           			"updateAddress?employeeId="+employeeId+"&addressId="+address.getId());
+           	modelAndView.addObject("id", employeeId);
+           	modelAndView.setViewName("addressForm");
+    	} catch (Exception e ) {
+    		modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
+    	}
+       	return modelAndView;
+    }
+	
+    @RequestMapping("/updateAddress")
+    private ModelAndView updateAddress(@RequestParam int addressId, 
+    		@RequestParam int employeeId, @ModelAttribute Address address) {
+    	address.setId(addressId);
+    	ModelAndView modelAndView = new ModelAndView();
+    	try {
+    		employeeService.updateExistingAddress(employeeId, address);
+    		modelAndView.setViewName("redirect:/showEmployee?id="+employeeId);
+    	} catch (EmployeeManagementException e) {
+    		modelAndView.addObject("message", e.getMessage());
+    		modelAndView.setViewName("displayMessage");
+		}
+    	return modelAndView;
+    }
 }
-
-
-
-
-
-
-
-
-
-

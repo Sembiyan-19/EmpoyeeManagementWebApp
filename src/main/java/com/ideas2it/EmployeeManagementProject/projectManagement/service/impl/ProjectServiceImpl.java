@@ -4,6 +4,9 @@ package com.ideas2it.EmployeeManagementProject.projectManagement.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
 import com.ideas2it.EmployeeManagementProject.employeeManagement.model.Employee;
 import com.ideas2it.EmployeeManagementProject.employeeManagement.service.EmployeeService;
 import com.ideas2it.EmployeeManagementProject.employeeManagement.service.impl.EmployeeServiceImpl;
@@ -21,17 +24,19 @@ import com.ideas2it.EmployeeManagementProject.projectManagement.service.ProjectS
  */
 public class ProjectServiceImpl implements ProjectService {
 
-    private ProjectDao projectDao = new ProjectDaoImpl();
+    private ProjectDao projectDao;
+    
+    public ProjectServiceImpl(ProjectDao projectDao) {
+    	this.projectDao = projectDao;
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void addProject(int projectId, String projectName,
-            String projectManager, String department)
+    public void addProject(Project project)
             throws EmployeeManagementException {
-        projectDao.insertProject(new Project(projectId, 
-                projectName, projectManager, department, false));
+        projectDao.insertProject(project);
     }
 
     /**
@@ -79,15 +84,12 @@ public class ProjectServiceImpl implements ProjectService {
      * {@inheritDoc} 
      */
     @Override
-    public void updateProject(int projectId, String projectName,
-            String projectManager, String department) 
+    public void updateProject(Project updatedProject) 
             throws EmployeeManagementException {
     	try {
-	        Project project = projectDao.retrieveProject(projectId);
-	        project.setName(projectName);
-	        project.setManager(projectManager);
-	        project.setDepartment(department);
-	        projectDao.updateProject(project);
+    		Project project = projectDao.retrieveProject(updatedProject.getId());
+    		updatedProject.setEmployees(project.getEmployees());
+	        projectDao.updateProject(updatedProject);
     	} catch (EmployeeManagementException e) {
     		throw new EmployeeManagementException("Error updating project");
     	}
@@ -99,7 +101,10 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void assignAEmployee(int projectId, int employeeId) 
             throws EmployeeManagementException {
-    	EmployeeService employeeService = new EmployeeServiceImpl();
+    	ApplicationContext appContext
+				= new ClassPathXmlApplicationContext("bean.xml");
+ 		EmployeeService employeeService 
+ 				= (EmployeeService) appContext.getBean("employeeService");
     	try {
 	        Project project = projectDao.retrieveProject(projectId);
 	        List<Employee> employees = project.getEmployees();
@@ -205,7 +210,10 @@ public class ProjectServiceImpl implements ProjectService {
     	try {
 	    	boolean isPresent;
 	    	List<Employee> availableEmployees = new ArrayList<Employee>();
-	    	EmployeeService employeeService = new EmployeeServiceImpl();
+	    	ApplicationContext appContext
+    				= new ClassPathXmlApplicationContext("bean.xml");
+	    	EmployeeService employeeService 
+					= (EmployeeService) appContext.getBean("employeeService");
 	    	Project project = projectDao.retrieveProject(projectId);
 	    	for (Employee employee : employeeService.getAllEmployees()) {
 	    		isPresent = false;

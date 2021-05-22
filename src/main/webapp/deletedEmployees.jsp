@@ -19,7 +19,7 @@
 			<td><c:out value="${employee.id}" /></td>
 			<td><c:out value="${employee.name}" /></td>
 			<td>
-			  <a href="employee?action=restoreEmployee&id=<c:out value='${employee.id}' />">
+			  <a href="restoreEmployee/<c:out value='${employee.id}' />">
 			    <button>Restore</button>
 			  </a>
 			</td>
@@ -27,6 +27,6 @@
 		</c:forEach>
     </table>
     <br><br><br>
-    <a href="employee?action=showAll"><button>Back</button></a>
+    <a href="showAllEmployees"><button>Back</button></a>
 </body>
 </html>

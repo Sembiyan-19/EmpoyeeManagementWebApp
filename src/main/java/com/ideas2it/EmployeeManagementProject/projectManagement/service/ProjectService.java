@@ -25,8 +25,7 @@ public interface ProjectService {
      *     true if details are successfully added else returns false
      * @throws EmployeeManagementException 
      */
-    public void addProject(int projectId, String projectName,
-            String projectManager, String department) 
+    public void addProject(Project project) 
             throws EmployeeManagementException;
 
     /**
@@ -71,8 +70,7 @@ public interface ProjectService {
      *     true if details are successfully updated else returns false
      * @throws EmployeeManagementException 
      */
-    public void updateProject(int projectId, String projectName,
-            String projectManager, String department) 
+    public void updateProject(Project project) 
             throws EmployeeManagementException;
 
     /**
